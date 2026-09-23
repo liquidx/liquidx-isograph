@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ui, setTool, clearDoc, doc } from '$lib/state.svelte';
 	import type { Tool } from '$lib/model';
+	import Icon from './Icon.svelte';
 
 	const tools: { id: Tool; label: string; key: string }[] = [
 		{ id: 'select', label: 'Select', key: 'V' },
@@ -40,13 +41,17 @@
 	<span class="divider"></span>
 	{#each tools as t (t.id)}
 		<button class="btn" class:active={ui.tool === t.id} onclick={() => setTool(t.id)}>
-			{t.label}<span class="key">{t.key}</span>
+			<Icon name={t.id} /><span class="label">{t.label}</span><span class="key">{t.key}</span>
 		</button>
 	{/each}
 	<span class="divider"></span>
-	<button class="btn" onclick={share}>{copied ? 'Copied' : 'Share'}</button>
+	<button class="btn" onclick={share}>
+		<Icon name={copied ? 'check' : 'share'} /><span class="label"
+			>{copied ? 'Copied' : 'Share'}</span
+		>
+	</button>
 	<button class="btn" class:danger={confirmClear} disabled={isEmpty} onclick={clear}>
-		{confirmClear ? 'Sure?' : 'Clear'}
+		<Icon name="trash" /><span class="label">{confirmClear ? 'Sure?' : 'Clear'}</span>
 	</button>
 </div>
 
@@ -64,6 +69,26 @@
 		font-weight: 600;
 		letter-spacing: 0.12em;
 		font-size: 11px;
+	}
+	@media (max-width: 640px) {
+		.toolbar {
+			left: 8px;
+			top: 8px;
+			right: 8px;
+			justify-content: space-between;
+			gap: 0;
+		}
+		.brand,
+		.label,
+		.toolbar :global(.key) {
+			display: none;
+		}
+		.toolbar :global(.btn) {
+			padding: 0;
+			width: 34px;
+			height: 32px;
+			justify-content: center;
+		}
 	}
 	.danger {
 		background: var(--ink);

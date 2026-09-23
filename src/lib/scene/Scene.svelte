@@ -15,7 +15,8 @@
 		setTool,
 		deleteSelection,
 		rotateBy,
-		zoomBy
+		zoomBy,
+		toggleHelp
 	} from '$lib/state.svelte';
 	import {
 		ANGLE_STEP,
@@ -761,8 +762,15 @@
 					e.preventDefault();
 					break;
 				case 'Escape':
+					if (ui.help) {
+						toggleHelp(false);
+						break;
+					}
 					setTool('select');
 					select(null);
+					break;
+				case '?':
+					toggleHelp();
 					break;
 				case 'v':
 					setTool('select');

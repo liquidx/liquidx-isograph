@@ -4,7 +4,8 @@
 	import Toolbar from '$lib/ui/Toolbar.svelte';
 	import Inspector from '$lib/ui/Inspector.svelte';
 	import CameraBar from '$lib/ui/CameraBar.svelte';
-	import Hints from '$lib/ui/Hints.svelte';
+	import BottomBar from '$lib/ui/BottomBar.svelte';
+	import HelpPane from '$lib/ui/HelpPane.svelte';
 	import { doc, loadDoc } from '$lib/state.svelte';
 	import { decodeDoc, encodeDoc } from '$lib/url';
 
@@ -42,7 +43,8 @@
 	<Toolbar />
 	<Inspector />
 	<CameraBar />
-	<Hints />
+	<BottomBar />
+	<HelpPane />
 </main>
 
 <style>

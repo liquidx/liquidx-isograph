@@ -18,6 +18,7 @@
 		clamp,
 		type Shade
 	} from '$lib/model';
+	import Icon from './Icon.svelte';
 
 	function stepLabel(b: { labelSize: number }, dir: number) {
 		b.labelSize =
@@ -60,9 +61,13 @@
 				<div class="field">
 					<span class="field-label">Label size</span>
 					<div class="stepper">
-						<button class="btn" onclick={() => stepLabel(block, -1)}>−</button>
+						<button class="btn" onclick={() => stepLabel(block, -1)}
+							><Icon name="minus" size={14} /></button
+						>
 						<span class="value">{block.labelSize.toFixed(1)}</span>
-						<button class="btn" onclick={() => stepLabel(block, 1)}>+</button>
+						<button class="btn" onclick={() => stepLabel(block, 1)}
+							><Icon name="plus" size={14} /></button
+						>
 					</div>
 				</div>
 			</div>
@@ -71,11 +76,11 @@
 					<span class="field-label">Size</span>
 					<div class="stepper">
 						<button class="btn" onclick={() => (block.size = clamp(block.size - 1, 1, MAX_SIZE))}
-							>−</button
+							><Icon name="minus" size={14} /></button
 						>
 						<span class="value">{block.size}</span>
 						<button class="btn" onclick={() => (block.size = clamp(block.size + 1, 1, MAX_SIZE))}
-							>+</button
+							><Icon name="plus" size={14} /></button
 						>
 					</div>
 				</div>
@@ -84,12 +89,14 @@
 					<div class="stepper">
 						<button
 							class="btn"
-							onclick={() => (block.height = clamp(block.height - 1, 1, MAX_HEIGHT))}>−</button
+							onclick={() => (block.height = clamp(block.height - 1, 1, MAX_HEIGHT))}
+							><Icon name="minus" size={14} /></button
 						>
 						<span class="value">{block.height}</span>
 						<button
 							class="btn"
-							onclick={() => (block.height = clamp(block.height + 1, 1, MAX_HEIGHT))}>+</button
+							onclick={() => (block.height = clamp(block.height + 1, 1, MAX_HEIGHT))}
+							><Icon name="plus" size={14} /></button
 						>
 					</div>
 				</div>
@@ -129,17 +136,25 @@
 				<div class="field">
 					<span class="field-label">Width</span>
 					<div class="stepper">
-						<button class="btn" onclick={() => (plane.w = Math.max(1, plane.w - 1))}>−</button>
+						<button class="btn" onclick={() => (plane.w = Math.max(1, plane.w - 1))}
+							><Icon name="minus" size={14} /></button
+						>
 						<span class="value">{plane.w}</span>
-						<button class="btn" onclick={() => (plane.w = plane.w + 1)}>+</button>
+						<button class="btn" onclick={() => (plane.w = plane.w + 1)}
+							><Icon name="plus" size={14} /></button
+						>
 					</div>
 				</div>
 				<div class="field">
 					<span class="field-label">Depth</span>
 					<div class="stepper">
-						<button class="btn" onclick={() => (plane.h = Math.max(1, plane.h - 1))}>−</button>
+						<button class="btn" onclick={() => (plane.h = Math.max(1, plane.h - 1))}
+							><Icon name="minus" size={14} /></button
+						>
 						<span class="value">{plane.h}</span>
-						<button class="btn" onclick={() => (plane.h = plane.h + 1)}>+</button>
+						<button class="btn" onclick={() => (plane.h = plane.h + 1)}
+							><Icon name="plus" size={14} /></button
+						>
 					</div>
 				</div>
 			</div>
@@ -169,7 +184,8 @@
 			</div>
 		{/if}
 		<div class="footer">
-			<button class="btn delete" onclick={deleteSelection}>Delete <span class="key">⌫</span></button
+			<button class="btn delete" onclick={deleteSelection}
+				><Icon name="trash" />Delete <span class="key">⌫</span></button
 			>
 		</div>
 	</div>
@@ -184,6 +200,17 @@
 		flex-direction: column;
 		gap: 14px;
 		padding: 12px;
+	}
+	@media (max-width: 640px) {
+		.inspector {
+			top: auto;
+			left: 8px;
+			right: 8px;
+			bottom: 52px;
+			width: auto;
+			max-height: calc(100dvh - 120px);
+			overflow-y: auto;
+		}
 	}
 	.title {
 		font-weight: 600;

@@ -21,8 +21,13 @@ export const doc: Doc = $state({ blocks: [], planes: [], links: [], camera: defa
 export const ui = $state({
 	tool: 'select' as Tool,
 	selection: null as SelectionRef | null,
-	linkFrom: null as number | null
+	linkFrom: null as number | null,
+	help: false
 });
+
+export function toggleHelp(open?: boolean) {
+	ui.help = open ?? !ui.help;
+}
 
 /** Block ids that should play the drop-in animation when they first appear. Intentionally non-reactive. */
 // eslint-disable-next-line svelte/prefer-svelte-reactivity
