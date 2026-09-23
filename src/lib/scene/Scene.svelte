@@ -415,7 +415,7 @@
 		function buildHandle(x: number, y: number, z: number, corner: number) {
 			const mesh = new THREE.Mesh(
 				new THREE.SphereGeometry(HANDLE_RADIUS, 24, 16),
-				new THREE.MeshLambertMaterial({ color: 0xffffff, depthTest: false })
+				new THREE.MeshLambertMaterial({ color: 0x2a2925, depthTest: false })
 			);
 			const outline = new THREE.Mesh(
 				new THREE.SphereGeometry(HANDLE_RADIUS * 1.18, 24, 16),
