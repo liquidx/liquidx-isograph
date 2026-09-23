@@ -11,6 +11,7 @@
 		addPlane,
 		addLink,
 		select,
+		selectedBlock,
 		setTool,
 		deleteSelection,
 		rotateBy,
@@ -20,6 +21,7 @@
 		ANGLE_STEP,
 		GRID_EXTENT,
 		MAX_EL,
+		MAX_SIZE,
 		MAX_ZOOM,
 		MIN_EL,
 		MIN_ZOOM,
@@ -44,11 +46,20 @@
 	const Z_LABEL = 0.06;
 	const Z_LINK = 0.08;
 	const Z_SEL = 0.1;
+	const HANDLE_RADIUS = 0.2; // world units at zoom 1; scaled by 1/zoom to stay constant on screen
+	/** Top corners of a block, as fractions of its size, in the order handles are built. */
+	const CORNERS: [number, number][] = [
+		[0, 0],
+		[1, 0],
+		[1, 1],
+		[0, 1]
+	];
 
 	type Drag =
 		| { kind: 'pan'; v: THREE.Vector2 }
 		| { kind: 'rotate'; x: number; y: number; az: number; el: number }
 		| { kind: 'move'; sel: SelectionRef; offX: number; offY: number }
+		| { kind: 'resize'; id: number; ax: number; ay: number; sx: number; sy: number; h: number }
 		| { kind: 'rect'; start: THREE.Vector3; cur: THREE.Vector3 };
 
 	function easeOutBounce(t: number): number {
@@ -115,6 +126,10 @@
 		raycaster.params.Line = { threshold: 0.2 };
 		const floor = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
 		scene.add(buildGrid());
+		// Only the lit corner handles use these; everything else is MeshBasicMaterial.
+		const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+		sun.position.set(-3, -5, 10);
+		scene.add(new THREE.AmbientLight(0xffffff, 1.4), sun);
 
 		const edgeMat = new THREE.LineBasicMaterial({ color: INK });
 		const blockObjs = new Map<
@@ -124,6 +139,7 @@
 		const planeObjs = new Map<number, { group: THREE.Group; mesh: THREE.Mesh; sig: string }>();
 		const linkObjs = new Map<number, { line: THREE.Line; sig: string }>();
 		const selectionGroup = new THREE.Group();
+		const handles: THREE.Mesh[] = [];
 		const previewGroup = new THREE.Group();
 		scene.add(selectionGroup, previewGroup);
 
@@ -181,6 +197,15 @@
 			raycaster.setFromCamera(v, camera);
 			const out = new THREE.Vector3();
 			return raycaster.ray.intersectPlane(floor, out) ? out : null;
+		}
+
+		/** Index into CORNERS of the corner handle under the pointer, if any. */
+		function pickHandle(v: THREE.Vector2): number | null {
+			if (!handles.length) return null;
+			syncMatrices();
+			raycaster.setFromCamera(v, camera);
+			const h = raycaster.intersectObjects(handles, false)[0];
+			return h ? (h.object.userData.corner as number) : null;
 		}
 
 		function pick(v: THREE.Vector2): SelectionRef | null {
@@ -371,19 +396,47 @@
 			}
 		});
 
+		function buildHandle(x: number, y: number, z: number, corner: number) {
+			const mesh = new THREE.Mesh(
+				new THREE.SphereGeometry(HANDLE_RADIUS, 24, 16),
+				new THREE.MeshLambertMaterial({ color: 0xffffff, depthTest: false })
+			);
+			const outline = new THREE.Mesh(
+				new THREE.SphereGeometry(HANDLE_RADIUS * 1.18, 24, 16),
+				new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide, depthTest: false })
+			);
+			// Drawn over the block so the handles stay grabbable from any angle.
+			mesh.renderOrder = 11;
+			outline.renderOrder = 10;
+			mesh.add(outline);
+			mesh.position.set(x, y, z);
+			mesh.scale.setScalar(1 / doc.camera.zoom);
+			mesh.userData = { corner };
+			return mesh;
+		}
+
 		$effect(() => {
 			for (const c of [...selectionGroup.children]) {
 				selectionGroup.remove(c);
 				disposeObject(c);
 			}
+			handles.length = 0;
 			const s = ui.selection;
 			const pad = 0.12;
 			if (s?.kind === 'block') {
 				const b = doc.blocks.find((x) => x.id === s.id);
-				if (b)
+				if (b) {
 					selectionGroup.add(
 						ring(b.x - pad, b.y - pad, b.x + b.size + pad, b.y + b.size + pad, Z_SEL)
 					);
+					if (ui.tool === 'select') {
+						CORNERS.forEach(([fx, fy], i) => {
+							const h = buildHandle(b.x + fx * b.size, b.y + fy * b.size, b.height, i);
+							handles.push(h);
+							selectionGroup.add(h);
+						});
+					}
+				}
 			} else if (s?.kind === 'plane') {
 				const p = doc.planes.find((x) => x.id === s.id);
 				if (p)
@@ -465,6 +518,22 @@
 					break;
 				}
 				default: {
+					const corner = pickHandle(v);
+					const sb = selectedBlock();
+					if (corner != null && sb) {
+						const [fx, fy] = CORNERS[corner];
+						drag = {
+							kind: 'resize',
+							id: sb.id,
+							ax: sb.x + (1 - fx) * sb.size,
+							ay: sb.y + (1 - fy) * sb.size,
+							sx: fx ? 1 : -1,
+							sy: fy ? 1 : -1,
+							h: sb.height
+						};
+						cursor = 'grabbing';
+						break;
+					}
 					if (hit) {
 						select(hit);
 						if (hit.kind === 'block' && fh) {
@@ -486,6 +555,10 @@
 		function onPointerMove(e: PointerEvent) {
 			const v = ndc(e);
 			if (!drag) {
+				if (ui.tool === 'select' && pickHandle(v) != null) {
+					cursor = 'grab';
+					return;
+				}
 				if (ui.tool === 'select' || ui.tool === 'link') {
 					const hit = pick(v);
 					cursor = hit
@@ -532,6 +605,29 @@
 					if (target && (target.x !== nx || target.y !== ny)) {
 						target.x = nx;
 						target.y = ny;
+					}
+					break;
+				}
+				case 'resize': {
+					// Project onto the block's top face so the corner tracks the pointer.
+					syncMatrices();
+					raycaster.setFromCamera(v, camera);
+					const top = new THREE.Plane(new THREE.Vector3(0, 0, 1), -drag.h);
+					const p = raycaster.ray.intersectPlane(top, new THREE.Vector3());
+					const id = drag.id;
+					const b = doc.blocks.find((x) => x.id === id);
+					if (!p || !b) break;
+					const size = clamp(
+						Math.round(Math.max((p.x - drag.ax) * drag.sx, (p.y - drag.ay) * drag.sy)),
+						1,
+						MAX_SIZE
+					);
+					const nx = drag.sx > 0 ? drag.ax : drag.ax - size;
+					const ny = drag.sy > 0 ? drag.ay : drag.ay - size;
+					if (b.size !== size || b.x !== nx || b.y !== ny) {
+						b.size = size;
+						b.x = nx;
+						b.y = ny;
 					}
 					break;
 				}
@@ -684,6 +780,7 @@
 		const DROP_HEIGHT = 8;
 		const loop = (now: number) => {
 			applyCamera();
+			for (const h of handles) h.scale.setScalar(1 / doc.camera.zoom);
 			for (const o of blockObjs.values()) {
 				if (o.drop === undefined) continue;
 				const t = (now - o.drop) / DROP_MS;
