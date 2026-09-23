@@ -435,7 +435,7 @@
 				.rotateX(Math.PI / 2);
 			const mesh = new THREE.Mesh(
 				geo,
-				new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true, depthTest: false })
+				new THREE.MeshLambertMaterial({ color: 0x2a2925, flatShading: true, depthTest: false })
 			);
 			const edges = new THREE.LineSegments(
 				new THREE.EdgesGeometry(geo),
