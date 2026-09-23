@@ -47,9 +47,10 @@
 	const Z_LABEL = 0.06;
 	const Z_LINK = 0.08;
 	const Z_SEL = 0.1;
-	const HANDLE_RADIUS = 0.1; // world units at zoom 1; scaled by 1/zoom to stay constant on screen
-	const PYRAMID_RADIUS = 0.16; // centre to base corner
-	const PYRAMID_HEIGHT = 0.2;
+	const HANDLE_RADIUS = 0.075; // world units at zoom 1; scaled by 1/zoom to stay constant on screen
+	const HANDLE_HIT_RADIUS = 0.25; // invisible pick target, larger than the handles so they're easy to grab
+	const PYRAMID_RADIUS = 0.12; // centre to base corner
+	const PYRAMID_HEIGHT = 0.15;
 	/** Top corners of a block, as fractions of its size, in the order handles are built. */
 	const CORNERS: [number, number][] = [
 		[0, 0],
@@ -147,6 +148,7 @@
 		const linkObjs = new Map<number, { line: THREE.Line; sig: string }>();
 		const selectionGroup = new THREE.Group();
 		const handles: THREE.Mesh[] = [];
+		const hitAreas: THREE.Mesh[] = [];
 		const previewGroup = new THREE.Group();
 		scene.add(selectionGroup, previewGroup);
 
@@ -211,7 +213,7 @@
 			if (!handles.length) return null;
 			syncMatrices();
 			raycaster.setFromCamera(v, camera);
-			const h = raycaster.intersectObjects(handles, false)[0];
+			const h = raycaster.intersectObjects(hitAreas, false)[0];
 			return h ? (h.object.userData.handle as Handle) : null;
 		}
 
@@ -407,7 +409,14 @@
 		function overlay(mesh: THREE.Object3D, order: number, handle: Handle) {
 			mesh.renderOrder = order;
 			mesh.scale.setScalar(1 / doc.camera.zoom);
-			mesh.userData = { handle };
+			const hit = new THREE.Mesh(
+				new THREE.SphereGeometry(HANDLE_HIT_RADIUS, 12, 8),
+				new THREE.MeshBasicMaterial()
+			);
+			hit.visible = false; // raycasting ignores visibility, so this still picks
+			hit.userData = { handle };
+			mesh.add(hit);
+			hitAreas.push(hit);
 			handles.push(mesh as THREE.Mesh);
 			selectionGroup.add(mesh);
 		}
@@ -453,6 +462,7 @@
 				disposeObject(c);
 			}
 			handles.length = 0;
+			hitAreas.length = 0;
 			const s = ui.selection;
 			const pad = 0.12;
 			if (s?.kind === 'block') {
