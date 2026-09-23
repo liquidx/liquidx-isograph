@@ -10,7 +10,7 @@
 					? ui.linkFrom == null
 						? 'Click the first block'
 						: 'Click the second block'
-					: 'Drag to pan · Wheel to zoom · Right-drag or Q/E to rotate · Arrows nudge'
+					: 'Drag to pan · Wheel to zoom · Right-drag or Q/E to rotate · Arrows nudge · Drag corners to resize · Drag the pyramid to set height'
 	);
 </script>
 
