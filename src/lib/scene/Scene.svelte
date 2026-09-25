@@ -47,7 +47,7 @@
 	const Z_LABEL = 0.06;
 	const Z_LINK = 0.08;
 	const Z_SEL = 0.1;
-	const HANDLE_RADIUS = 0.075; // world units at zoom 1; scaled by 1/zoom to stay constant on screen
+	const HANDLE_RADIUS = 0.075; // world units at zoom 1; see handleScale()
 	const HANDLE_HIT_RADIUS = 0.25; // invisible pick target, larger than the handles so they're easy to grab
 	const PYRAMID_RADIUS = 0.12; // centre to base corner
 	const PYRAMID_HEIGHT = 0.15;
@@ -66,6 +66,14 @@
 		| { kind: 'resize'; id: number; ax: number; ay: number; sx: number; sy: number; h: number }
 		| { kind: 'height'; id: number; plane: THREE.Plane; off: number }
 		| { kind: 'rect'; start: THREE.Vector3; cur: THREE.Vector3 };
+
+	/**
+	 * Handle scale for a zoom level. Zoomed in, handles keep a constant on-screen size; zoomed out,
+	 * they shrink with the square root of the zoom so they stay in proportion to the smaller blocks.
+	 */
+	function handleScale(zoom: number): number {
+		return zoom < 1 ? 1 / Math.sqrt(zoom) : 1 / zoom;
+	}
 
 	/** A corner handle's index into CORNERS, or the centre height handle. */
 	type Handle = number | 'height';
@@ -408,7 +416,7 @@
 		/** Drawn over the block so the handles stay grabbable from any angle. */
 		function overlay(mesh: THREE.Object3D, order: number, handle: Handle) {
 			mesh.renderOrder = order;
-			mesh.scale.setScalar(1 / doc.camera.zoom);
+			mesh.scale.setScalar(handleScale(doc.camera.zoom));
 			const hit = new THREE.Mesh(
 				new THREE.SphereGeometry(HANDLE_HIT_RADIUS, 12, 8),
 				new THREE.MeshBasicMaterial()
@@ -849,7 +857,8 @@
 		const DROP_HEIGHT = 8;
 		const loop = (now: number) => {
 			applyCamera();
-			for (const h of handles) h.scale.setScalar(1 / doc.camera.zoom);
+			const hs = handleScale(doc.camera.zoom);
+			for (const h of handles) h.scale.setScalar(hs);
 			for (const o of blockObjs.values()) {
 				if (o.drop === undefined) continue;
 				const t = (now - o.drop) / DROP_MS;
