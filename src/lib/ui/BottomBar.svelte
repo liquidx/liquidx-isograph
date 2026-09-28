@@ -4,9 +4,9 @@
 
 	const hint = $derived(
 		ui.tool === 'block'
-			? 'Click the floor to drop a block · Esc to finish'
+			? 'Click the floor to drop a block · Shift-click to drop more'
 			: ui.tool === 'plane'
-				? 'Drag on the floor to draw a plane · Esc to finish'
+				? 'Drag on the floor to draw a plane · Hold shift to draw more'
 				: ui.tool === 'link'
 					? ui.linkFrom == null
 						? 'Click the first block'
