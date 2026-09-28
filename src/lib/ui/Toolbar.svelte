@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { ui, setTool, clearDoc, doc } from '$lib/state.svelte';
-	import type { Tool } from '$lib/model';
+	import { ui, setTool, setShape, clearDoc, doc } from '$lib/state.svelte';
+	import { SHAPES, type Tool } from '$lib/model';
 	import Icon from './Icon.svelte';
 
 	const tools: { id: Tool; label: string; key: string }[] = [
@@ -44,6 +44,23 @@
 			<Icon name={t.id} /><span class="label">{t.label}</span><span class="key">{t.key}</span>
 		</button>
 	{/each}
+	{#if ui.tool === 'block'}
+		<span class="divider"></span>
+		<div class="shapes" role="group" aria-label="Shape">
+			{#each SHAPES as s (s)}
+				<button
+					class="btn icon"
+					class:active={ui.shape === s}
+					title={s}
+					aria-label={s}
+					aria-pressed={ui.shape === s}
+					onclick={() => setShape(s)}
+				>
+					<Icon name={s} />
+				</button>
+			{/each}
+		</div>
+	{/if}
 	<span class="divider"></span>
 	<button class="btn" onclick={share}>
 		<Icon name={copied ? 'check' : 'share'} /><span class="label"
@@ -89,6 +106,10 @@
 			height: 32px;
 			justify-content: center;
 		}
+	}
+	.shapes {
+		display: flex;
+		gap: 2px;
 	}
 	.danger {
 		background: var(--ink);

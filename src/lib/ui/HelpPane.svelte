@@ -13,6 +13,7 @@
 				{ keys: ['B'], label: 'Block' },
 				{ keys: ['P'], label: 'Plane' },
 				{ keys: ['L'], label: 'Link' },
+				{ keys: ['Shift', 'Click'], label: 'Keep adding blocks / planes' },
 				{ keys: ['Esc'], label: 'Back to select / deselect' }
 			]
 		},

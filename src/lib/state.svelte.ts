@@ -13,6 +13,7 @@ import {
 	type Link,
 	type Plane,
 	type SelectionRef,
+	type Shape,
 	type Tool
 } from './model';
 
@@ -22,8 +23,14 @@ export const ui = $state({
 	tool: 'select' as Tool,
 	selection: null as SelectionRef | null,
 	linkFrom: null as number | null,
+	/** Shape the block tool drops next. */
+	shape: 'box' as Shape,
 	help: false
 });
+
+export function setShape(shape: Shape) {
+	ui.shape = shape;
+}
 
 export function toggleHelp(open?: boolean) {
 	ui.help = open ?? !ui.help;
@@ -67,9 +74,10 @@ export function select(ref: SelectionRef | null) {
 	ui.selection = ref;
 }
 
-export function addBlock(x: number, y: number): Block {
+/** The block the block tool would drop at a cell, without adding it. */
+export function nextBlock(x: number, y: number): Block {
 	const last = doc.blocks[doc.blocks.length - 1];
-	const b: Block = {
+	return {
 		id: nextId(),
 		x,
 		y,
@@ -77,10 +85,17 @@ export function addBlock(x: number, y: number): Block {
 		height: last?.height ?? 1,
 		color: last?.color ?? 1,
 		shade: last?.shade ?? 'shaded',
+		shape: ui.shape,
+		hatch: last?.hatch ?? 'diagonal',
+		density: last?.density ?? 'medium',
 		label: '',
 		edge: last?.edge ?? 'S',
 		labelSize: last?.labelSize ?? DEFAULT_LABEL_SIZE
 	};
+}
+
+export function addBlock(x: number, y: number): Block {
+	const b = nextBlock(x, y);
 	doc.blocks.push(b);
 	dropQueue.add(b.id);
 	ui.selection = { kind: 'block', id: b.id };
@@ -89,7 +104,17 @@ export function addBlock(x: number, y: number): Block {
 
 export function addPlane(x: number, y: number, w: number, h: number): Plane {
 	const last = doc.planes[doc.planes.length - 1];
-	const p: Plane = { id: nextId(), x, y, w, h, color: last?.color ?? 2 };
+	const p: Plane = {
+		id: nextId(),
+		x,
+		y,
+		w,
+		h,
+		color: last?.color ?? 2,
+		label: '',
+		edge: last?.edge ?? 'S',
+		labelSize: last?.labelSize ?? DEFAULT_LABEL_SIZE
+	};
 	doc.planes.push(p);
 	ui.selection = { kind: 'plane', id: p.id };
 	return p;
@@ -98,10 +123,30 @@ export function addPlane(x: number, y: number, w: number, h: number): Plane {
 export function addLink(a: number, b: number): Link | null {
 	if (a === b) return null;
 	if (doc.links.some((l) => (l.a === a && l.b === b) || (l.a === b && l.b === a))) return null;
-	const l: Link = { id: nextId(), a, b };
+	const last = doc.links[doc.links.length - 1];
+	const l: Link = {
+		id: nextId(),
+		a,
+		b,
+		style: last?.style ?? 'elbow',
+		bend: last?.bend ?? 'x',
+		dash: last?.dash ?? 'solid',
+		from: 'C',
+		to: 'C',
+		label: '',
+		labelSize: last?.labelSize ?? DEFAULT_LABEL_SIZE,
+		direction: last?.direction ?? 'none',
+		animated: last?.animated ?? false
+	};
 	doc.links.push(l);
 	ui.selection = { kind: 'link', id: l.id };
 	return l;
+}
+
+/** Reverse a link so it runs from its second block to its first. */
+export function swapLink(l: Link) {
+	[l.a, l.b] = [l.b, l.a];
+	[l.from, l.to] = [l.to, l.from];
 }
 
 export function deleteSelection() {
