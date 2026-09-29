@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { ui, setTool, setShape, clearDoc, doc } from '$lib/state.svelte';
-	import { SHAPES, type Tool } from '$lib/model';
+	import { SHAPES, SHAPE_KEYS, type Tool } from '$lib/model';
 	import Icon from './Icon.svelte';
 
-	const tools: { id: Tool; label: string; key: string }[] = [
+	const tools: { id: Tool; label: string; key?: string }[] = [
 		{ id: 'select', label: 'Select', key: 'V' },
-		{ id: 'block', label: 'Block', key: 'B' },
+		{ id: 'shape', label: 'Shape' },
 		{ id: 'plane', label: 'Plane', key: 'P' },
 		{ id: 'link', label: 'Link', key: 'L' }
 	];
@@ -41,17 +41,19 @@
 	<span class="divider"></span>
 	{#each tools as t (t.id)}
 		<button class="btn" class:active={ui.tool === t.id} onclick={() => setTool(t.id)}>
-			<Icon name={t.id} /><span class="label">{t.label}</span><span class="key">{t.key}</span>
+			<Icon name={t.id === 'shape' ? ui.shape : t.id} /><span class="label">{t.label}</span><span
+				class="key">{t.id === 'shape' ? SHAPE_KEYS[ui.shape] : t.key}</span
+			>
 		</button>
 	{/each}
-	{#if ui.tool === 'block'}
+	{#if ui.tool === 'shape'}
 		<span class="divider"></span>
 		<div class="shapes" role="group" aria-label="Shape">
 			{#each SHAPES as s (s)}
 				<button
 					class="btn icon"
 					class:active={ui.shape === s}
-					title={s}
+					title="{s} ({SHAPE_KEYS[s]})"
 					aria-label={s}
 					aria-pressed={ui.shape === s}
 					onclick={() => setShape(s)}

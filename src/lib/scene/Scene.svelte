@@ -14,6 +14,9 @@
 		select,
 		selectedBlock,
 		setTool,
+		pickShape,
+		copySelection,
+		pasteClipboard,
 		deleteSelection,
 		rotateBy,
 		zoomBy,
@@ -825,7 +828,7 @@
 
 		$effect(() => {
 			void ui.shape;
-			if (ui.tool !== 'block') clearGhost();
+			if (ui.tool !== 'shape') clearGhost();
 			else {
 				// Rebuild on the next move so a shape change shows immediately.
 				const c = ghostCell;
@@ -875,7 +878,7 @@
 			const hit = pick(v);
 			const fh = floorHit(v);
 			switch (ui.tool) {
-				case 'block': {
+				case 'shape': {
 					if (hit?.kind === 'block') {
 						select(hit);
 						break;
@@ -957,7 +960,7 @@
 		function onPointerMove(e: PointerEvent) {
 			const v = ndc(e);
 			if (!drag) {
-				if (ui.tool === 'block') {
+				if (ui.tool === 'shape') {
 					const hit = pick(v);
 					const fh = hit?.kind === 'block' ? null : floorHit(v);
 					setGhost(fh ? { x: Math.floor(fh.x), y: Math.floor(fh.y) } : null);
@@ -1108,7 +1111,13 @@
 		function onKeyDown(e: KeyboardEvent) {
 			const t = e.target as HTMLElement | null;
 			if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-			if (e.metaKey || e.ctrlKey) return;
+			if (e.metaKey || e.ctrlKey) {
+				if (e.altKey || e.shiftKey) return;
+				const k = e.key.toLowerCase();
+				if (k === 'c' && ui.tool === 'select' && copySelection()) e.preventDefault();
+				else if (k === 'v' && ui.tool === 'select' && pasteClipboard()) e.preventDefault();
+				return;
+			}
 			switch (e.key) {
 				case ' ':
 					spaceDown = true;
@@ -1135,7 +1144,16 @@
 					setTool('select');
 					break;
 				case 'b':
-					setTool('block');
+					pickShape('box');
+					break;
+				case 'c':
+					pickShape('cylinder');
+					break;
+				case 's':
+					pickShape('sphere');
+					break;
+				case 'y':
+					pickShape('pyramid');
 					break;
 				case 'p':
 					setTool('plane');

@@ -5,16 +5,27 @@
 	type Row = { keys: string[]; label: string };
 	type Group = { title: string; rows: Row[] };
 
+	const mod =
+		typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
+
 	const groups: Group[] = [
 		{
 			title: 'Tools',
 			rows: [
 				{ keys: ['V'], label: 'Select' },
-				{ keys: ['B'], label: 'Block' },
 				{ keys: ['P'], label: 'Plane' },
 				{ keys: ['L'], label: 'Link' },
-				{ keys: ['Shift', 'Click'], label: 'Keep adding blocks / planes' },
+				{ keys: ['Shift', 'Click'], label: 'Keep adding shapes / planes' },
 				{ keys: ['Esc'], label: 'Back to select / deselect' }
+			]
+		},
+		{
+			title: 'Shapes',
+			rows: [
+				{ keys: ['B'], label: 'Box' },
+				{ keys: ['C'], label: 'Cylinder' },
+				{ keys: ['S'], label: 'Sphere' },
+				{ keys: ['Y'], label: 'Pyramid' }
 			]
 		},
 		{
@@ -34,6 +45,8 @@
 				{ keys: ['↑', '↓', '←', '→'], label: 'Nudge one cell' },
 				{ keys: ['Drag corner'], label: 'Resize' },
 				{ keys: ['Drag pyramid'], label: 'Set block height' },
+				{ keys: [mod, 'C'], label: 'Copy' },
+				{ keys: [mod, 'V'], label: 'Paste' },
 				{ keys: ['⌫'], label: 'Delete' }
 			]
 		},

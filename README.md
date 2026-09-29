@@ -12,8 +12,10 @@ A small SvelteKit + Three.js app for drawing 3D block diagrams on an orthographi
 
 | Action           | Input                                                                 |
 | ---------------- | --------------------------------------------------------------------- |
-| Tools            | `V` select · `B` block · `P` plane · `L` link · `Esc` back to select  |
-| Adding           | dropping a block or plane returns to select; hold `Shift` to add more |
+| Tools            | `V` select · `P` plane · `L` link · `Esc` back to select              |
+| Shapes           | `B` box · `C` cylinder · `S` sphere · `Y` pyramid                     |
+| Adding           | dropping a shape or plane returns to select; hold `Shift` to add more |
+| Copy / paste     | `Cmd`/`Ctrl` + `C` / `V` duplicates the selected block or plane       |
 | Pan              | drag empty floor, middle-drag, or space+drag                          |
 | Zoom             | wheel, `+` / `-`                                                      |
 | Rotate           | right-drag, alt-drag, `Q` / `E`                                       |

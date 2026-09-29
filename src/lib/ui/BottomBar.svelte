@@ -3,8 +3,8 @@
 	import Icon from './Icon.svelte';
 
 	const hint = $derived(
-		ui.tool === 'block'
-			? 'Click the floor to drop a block · Shift-click to drop more'
+		ui.tool === 'shape'
+			? `Click the floor to drop a ${ui.shape} · Shift-click to drop more`
 			: ui.tool === 'plane'
 				? 'Drag on the floor to draw a plane · Hold shift to draw more'
 				: ui.tool === 'link'
