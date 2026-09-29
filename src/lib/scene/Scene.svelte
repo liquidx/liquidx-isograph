@@ -61,7 +61,12 @@
 	const BASE_VIEW = 24; // world units visible vertically at zoom 1
 	const DIST = 300;
 	const Z_PLANE = 0.01;
-	const Z_EDGE = 0.04; // block outlines sit just above the grid and plane rugs so they never z-fight
+	/**
+	 * How far block outlines are pulled toward the camera so they never z-fight with the faces,
+	 * grid or plane rugs. The pull is along the view direction, so with an orthographic camera it
+	 * changes only depth and the lines stay exactly on the shape's edges on screen.
+	 */
+	const EDGE_PULL = 0.04;
 	const Z_LABEL = 0.06;
 	const Z_LINK = 0.08;
 	const Z_SEL = 0.1;
@@ -266,6 +271,11 @@
 			camera.updateProjectionMatrix();
 			// Keep the grid centred under the camera; snapping keeps its major lines in place.
 			grid.position.set(Math.round(c.tx / 5) * 5, Math.round(c.ty / 5) * 5, 0);
+			// Outlines follow the camera so their depth offset never shows as a screen offset.
+			const pull = dir.clone().multiplyScalar(EDGE_PULL);
+			scene.traverse((o) => {
+				if (o.userData.pull) o.position.copy(pull);
+			});
 		}
 		resize();
 
@@ -360,7 +370,7 @@
 				new THREE.EdgesGeometry(geo, b.shape === 'cylinder' ? 30 : 1),
 				mat
 			);
-			edges.position.z = Z_EDGE;
+			edges.userData.pull = true;
 			return edges;
 		}
 
