@@ -8,7 +8,7 @@ const FACE_TONE = [0.84, 0.66, 0.74, 0.94, 1.0, 0.6];
 /** Dark pixels out of 16 in the Bayer tile, per face. */
 const DITHER_LEVEL = [5, 10, 8, 3, 1, 12];
 /** Hatch lines per tile, per face. */
-const HATCH_LINES = [2, 3, 3, 1, 0, 3];
+const HATCH_LINES = [2, 3, 3, 1, 1, 3];
 const BAYER4 = [
 	[0, 8, 2, 10],
 	[12, 4, 14, 6],
