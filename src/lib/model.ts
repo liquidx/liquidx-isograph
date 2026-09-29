@@ -3,7 +3,7 @@ export type Shape = 'box' | 'cylinder' | 'sphere' | 'pyramid';
 export type Hatch = 'diagonal' | 'backslash' | 'cross' | 'horizontal' | 'vertical' | 'grid';
 export type Density = 'fine' | 'medium' | 'coarse';
 export type Edge = 'S' | 'E' | 'N' | 'W';
-export type Tool = 'select' | 'block' | 'plane' | 'link';
+export type Tool = 'select' | 'shape' | 'plane' | 'link';
 
 /** Where a link attaches to a block: the centre, an edge midpoint, or a corner. */
 export type Anchor = 'C' | 'N' | 'E' | 'S' | 'W' | 'NE' | 'SE' | 'SW' | 'NW';
@@ -78,6 +78,13 @@ export interface SelectionRef {
 
 export const SHADES: Shade[] = ['flat', 'shaded', 'dither', 'hatch'];
 export const SHAPES: Shape[] = ['box', 'cylinder', 'sphere', 'pyramid'];
+/** Keyboard shortcut that picks each shape and switches to the shape tool. */
+export const SHAPE_KEYS: Record<Shape, string> = {
+	box: 'B',
+	cylinder: 'C',
+	sphere: 'S',
+	pyramid: 'Y'
+};
 export const HATCHES: Hatch[] = [
 	'diagonal',
 	'backslash',

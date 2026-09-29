@@ -14,7 +14,11 @@
 		select,
 		selectedBlock,
 		setTool,
+		pickShape,
+		copySelection,
+		pasteClipboard,
 		deleteSelection,
+		toast,
 		rotateBy,
 		zoomBy,
 		toggleHelp
@@ -39,6 +43,7 @@
 		type Plane,
 		type SelectionRef
 	} from '$lib/model';
+	import { undo, redo } from '$lib/history.svelte';
 	import {
 		INK,
 		blockGeometry,
@@ -825,7 +830,7 @@
 
 		$effect(() => {
 			void ui.shape;
-			if (ui.tool !== 'block') clearGhost();
+			if (ui.tool !== 'shape') clearGhost();
 			else {
 				// Rebuild on the next move so a shape change shows immediately.
 				const c = ghostCell;
@@ -875,7 +880,7 @@
 			const hit = pick(v);
 			const fh = floorHit(v);
 			switch (ui.tool) {
-				case 'block': {
+				case 'shape': {
 					if (hit?.kind === 'block') {
 						select(hit);
 						break;
@@ -957,7 +962,7 @@
 		function onPointerMove(e: PointerEvent) {
 			const v = ndc(e);
 			if (!drag) {
-				if (ui.tool === 'block') {
+				if (ui.tool === 'shape') {
 					const hit = pick(v);
 					const fh = hit?.kind === 'block' ? null : floorHit(v);
 					setGhost(fh ? { x: Math.floor(fh.x), y: Math.floor(fh.y) } : null);
@@ -1108,7 +1113,32 @@
 		function onKeyDown(e: KeyboardEvent) {
 			const t = e.target as HTMLElement | null;
 			if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-			if (e.metaKey || e.ctrlKey) return;
+			if (e.metaKey || e.ctrlKey) {
+				if (e.altKey) return;
+				const k = e.key.toLowerCase();
+				if (k === 'z' || (k === 'y' && !e.shiftKey)) {
+					const isRedo = k === 'y' || e.shiftKey;
+					if (isRedo) toast(redo() ? 'Redo' : 'Nothing to redo');
+					else toast(undo() ? 'Undo' : 'Nothing to undo');
+					e.preventDefault();
+					return;
+				}
+				if (e.shiftKey) return;
+				if (k === 'c' && ui.tool === 'select') {
+					const sel = ui.selection;
+					if (copySelection()) {
+						toast(`Copied ${sel?.kind}`);
+						e.preventDefault();
+					}
+				} else if (k === 'v' && ui.tool === 'select') {
+					const pasted = pasteClipboard();
+					if (pasted) {
+						toast(`Pasted ${ui.selection?.kind}`);
+						e.preventDefault();
+					}
+				}
+				return;
+			}
 			switch (e.key) {
 				case ' ':
 					spaceDown = true;
@@ -1116,15 +1146,20 @@
 					e.preventDefault();
 					break;
 				case 'Delete':
-				case 'Backspace':
+				case 'Backspace': {
+					const kind = ui.selection?.kind;
 					deleteSelection();
+					if (kind) toast(`Deleted ${kind}`);
 					e.preventDefault();
 					break;
+				}
 				case 'Escape':
 					if (ui.help) {
 						toggleHelp(false);
 						break;
 					}
+					if (ui.tool !== 'select') toast('Select tool');
+					else if (ui.selection) toast('Deselected');
 					setTool('select');
 					select(null);
 					break;
@@ -1133,28 +1168,48 @@
 					break;
 				case 'v':
 					setTool('select');
+					toast('Select tool');
 					break;
 				case 'b':
-					setTool('block');
+					pickShape('box');
+					toast('Box shape');
+					break;
+				case 'c':
+					pickShape('cylinder');
+					toast('Cylinder shape');
+					break;
+				case 's':
+					pickShape('sphere');
+					toast('Sphere shape');
+					break;
+				case 'y':
+					pickShape('pyramid');
+					toast('Pyramid shape');
 					break;
 				case 'p':
 					setTool('plane');
+					toast('Plane tool');
 					break;
 				case 'l':
 					setTool('link');
+					toast('Link tool');
 					break;
 				case 'q':
 					rotateBy(1);
+					toast('Rotate left');
 					break;
 				case 'e':
 					rotateBy(-1);
+					toast('Rotate right');
 					break;
 				case '=':
 				case '+':
 					zoomBy(1.25);
+					toast('Zoom in');
 					break;
 				case '-':
 					zoomBy(0.8);
+					toast('Zoom out');
 					break;
 				case 'ArrowUp':
 				case 'ArrowDown':
@@ -1178,6 +1233,7 @@
 									: [-ax.right[0], -ax.right[1]];
 					target.x += dir[0];
 					target.y += dir[1];
+					toast(`Nudged ${s.kind}`);
 					e.preventDefault();
 					break;
 				}

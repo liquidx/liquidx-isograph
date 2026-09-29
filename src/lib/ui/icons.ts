@@ -34,6 +34,7 @@ const pyramid = svg(
 
 export const icons = {
 	select: cursorArrowRays,
+	shape: cube,
 	block: cube,
 	plane: stop,
 	link,
