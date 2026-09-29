@@ -25,8 +25,24 @@ export const ui = $state({
 	linkFrom: null as number | null,
 	/** Shape the shape tool drops next. */
 	shape: 'box' as Shape,
-	help: false
+	help: false,
+	/** Transient message shown at the bottom of the screen after a keyboard action. */
+	toast: null as { id: number; text: string } | null
 });
+
+const TOAST_MS = 3000;
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+let toastId = 0;
+
+/** Show a short message for a few seconds. A new toast replaces the old one and restarts the timer. */
+export function toast(text: string) {
+	ui.toast = { id: ++toastId, text };
+	if (toastTimer) clearTimeout(toastTimer);
+	toastTimer = setTimeout(() => {
+		ui.toast = null;
+		toastTimer = null;
+	}, TOAST_MS);
+}
 
 /** Copied block or plane, ready to paste. Intentionally non-reactive. */
 let clipboard: { kind: 'block'; item: Block } | { kind: 'plane'; item: Plane } | null = null;

@@ -18,6 +18,7 @@
 		copySelection,
 		pasteClipboard,
 		deleteSelection,
+		toast,
 		rotateBy,
 		zoomBy,
 		toggleHelp
@@ -42,6 +43,7 @@
 		type Plane,
 		type SelectionRef
 	} from '$lib/model';
+	import { undo, redo } from '$lib/history.svelte';
 	import {
 		INK,
 		blockGeometry,
@@ -1112,10 +1114,29 @@
 			const t = e.target as HTMLElement | null;
 			if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
 			if (e.metaKey || e.ctrlKey) {
-				if (e.altKey || e.shiftKey) return;
+				if (e.altKey) return;
 				const k = e.key.toLowerCase();
-				if (k === 'c' && ui.tool === 'select' && copySelection()) e.preventDefault();
-				else if (k === 'v' && ui.tool === 'select' && pasteClipboard()) e.preventDefault();
+				if (k === 'z' || (k === 'y' && !e.shiftKey)) {
+					const isRedo = k === 'y' || e.shiftKey;
+					if (isRedo) toast(redo() ? 'Redo' : 'Nothing to redo');
+					else toast(undo() ? 'Undo' : 'Nothing to undo');
+					e.preventDefault();
+					return;
+				}
+				if (e.shiftKey) return;
+				if (k === 'c' && ui.tool === 'select') {
+					const sel = ui.selection;
+					if (copySelection()) {
+						toast(`Copied ${sel?.kind}`);
+						e.preventDefault();
+					}
+				} else if (k === 'v' && ui.tool === 'select') {
+					const pasted = pasteClipboard();
+					if (pasted) {
+						toast(`Pasted ${ui.selection?.kind}`);
+						e.preventDefault();
+					}
+				}
 				return;
 			}
 			switch (e.key) {
@@ -1125,15 +1146,20 @@
 					e.preventDefault();
 					break;
 				case 'Delete':
-				case 'Backspace':
+				case 'Backspace': {
+					const kind = ui.selection?.kind;
 					deleteSelection();
+					if (kind) toast(`Deleted ${kind}`);
 					e.preventDefault();
 					break;
+				}
 				case 'Escape':
 					if (ui.help) {
 						toggleHelp(false);
 						break;
 					}
+					if (ui.tool !== 'select') toast('Select tool');
+					else if (ui.selection) toast('Deselected');
 					setTool('select');
 					select(null);
 					break;
@@ -1142,37 +1168,48 @@
 					break;
 				case 'v':
 					setTool('select');
+					toast('Select tool');
 					break;
 				case 'b':
 					pickShape('box');
+					toast('Box shape');
 					break;
 				case 'c':
 					pickShape('cylinder');
+					toast('Cylinder shape');
 					break;
 				case 's':
 					pickShape('sphere');
+					toast('Sphere shape');
 					break;
 				case 'y':
 					pickShape('pyramid');
+					toast('Pyramid shape');
 					break;
 				case 'p':
 					setTool('plane');
+					toast('Plane tool');
 					break;
 				case 'l':
 					setTool('link');
+					toast('Link tool');
 					break;
 				case 'q':
 					rotateBy(1);
+					toast('Rotate left');
 					break;
 				case 'e':
 					rotateBy(-1);
+					toast('Rotate right');
 					break;
 				case '=':
 				case '+':
 					zoomBy(1.25);
+					toast('Zoom in');
 					break;
 				case '-':
 					zoomBy(0.8);
+					toast('Zoom out');
 					break;
 				case 'ArrowUp':
 				case 'ArrowDown':
@@ -1196,6 +1233,7 @@
 									: [-ax.right[0], -ax.right[1]];
 					target.x += dir[0];
 					target.y += dir[1];
+					toast(`Nudged ${s.kind}`);
 					e.preventDefault();
 					break;
 				}

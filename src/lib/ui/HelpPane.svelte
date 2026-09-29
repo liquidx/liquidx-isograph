@@ -29,25 +29,22 @@
 			]
 		},
 		{
-			title: 'Camera',
+			title: 'Edit',
 			rows: [
-				{ keys: ['Drag'], label: 'Pan the floor' },
-				{ keys: ['Space', 'Drag'], label: 'Pan from anywhere' },
-				{ keys: ['Wheel'], label: 'Zoom' },
-				{ keys: ['+', '−'], label: 'Zoom in / out' },
-				{ keys: ['Right-drag'], label: 'Rotate' },
-				{ keys: ['Q', 'E'], label: 'Rotate left / right' }
+				{ keys: [mod, 'Z'], label: 'Undo' },
+				{ keys: [mod, 'Shift', 'Z'], label: 'Redo' },
+				{ keys: [mod, 'C'], label: 'Copy selection' },
+				{ keys: [mod, 'V'], label: 'Paste' },
+				{ keys: ['↑', '↓', '←', '→'], label: 'Nudge selection one cell' },
+				{ keys: ['⌫'], label: 'Delete selection' }
 			]
 		},
 		{
-			title: 'Selection',
+			title: 'Camera',
 			rows: [
-				{ keys: ['↑', '↓', '←', '→'], label: 'Nudge one cell' },
-				{ keys: ['Drag corner'], label: 'Resize' },
-				{ keys: ['Drag pyramid'], label: 'Set block height' },
-				{ keys: [mod, 'C'], label: 'Copy' },
-				{ keys: [mod, 'V'], label: 'Paste' },
-				{ keys: ['⌫'], label: 'Delete' }
+				{ keys: ['Q', 'E'], label: 'Rotate left / right' },
+				{ keys: ['+', '−'], label: 'Zoom in / out' },
+				{ keys: ['Space', 'Drag'], label: 'Pan from anywhere' }
 			]
 		},
 		{
